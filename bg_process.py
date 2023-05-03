@@ -46,7 +46,8 @@ async def check_new(bot: Bot, db: DataBase):
                         f'Новая задача: <b>{title}</b>\n'
                         f'Цена: <i>{price}</i>\n'
                         f'Отзывов/просмотров: {comments_count}/{views_count}\n'
-                        f'{category} {sub_category}'
-                        f'<a href="https://freelance.habr.com/tasks/{task_id}">Ссылка</a>'
+                        f'{category} {sub_category}\n'
+                        f'<a href="https://freelance.habr.com/tasks/{task_id}">Ссылка</a>',
+                        disable_web_page_preview=True
                     )
         await sleep(60)
