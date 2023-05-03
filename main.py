@@ -3,9 +3,12 @@ from dotenv import load_dotenv
 
 from os import environ
 import asyncio
+import logging
 
+from messages import start
 from bg_process import check_new
 from sql import DataBase
+from middlewares import DBMiddleware
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO, format='%(levelname)-8s[%(asctime)s] %(message)s')
@@ -23,7 +26,7 @@ if not all(BOT_TOKEN):
 
     exit(-1)
 
-bot = Bot(token=BOT_TOKEN)
+bot = Bot(token=BOT_TOKEN, parse_mode='HTML')
 dp = Dispatcher(bot)
 
 db = DataBase(
@@ -34,9 +37,12 @@ db = DataBase(
 
 
 async def main(_):
-    asyncio.create_task(check_new())
+    asyncio.create_task(check_new(bot, db))
 
 
 if __name__ == '__main__':
-    executor.start_polling(dp, on_startup=main, skip_updates=True, loop=loop)
+    dp.middleware.setup(DBMiddleware(db))
 
+    dp.register_message_handler(start, commands=['start'])
+
+    executor.start_polling(dp, on_startup=main, skip_updates=True, loop=loop)
