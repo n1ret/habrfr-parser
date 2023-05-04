@@ -108,22 +108,23 @@ class DataBase:
 
         is_new = []
         connection = self.connect()
-        for task in tasks:
-            (
-                task_id, title, url, category, sub_category,
-                price, published_date,
-                comments_count, views_count, is_published
-            ) = task
-
-            is_task_not_exists = await self.get_task(task_id, connection) is None
-            is_new.append(is_task_not_exists)
-            if is_task_not_exists:
-                await self.add_task(
+        async with connection:
+            for task in tasks:
+                (
                     task_id, title, url, category, sub_category,
                     price, published_date,
-                    comments_count, views_count, is_published,
-                    connection
-                )
+                    comments_count, views_count, is_published
+                ) = task
+
+                is_task_not_exists = await self.get_task(task_id, connection) is None
+                is_new.append(is_task_not_exists)
+                if is_task_not_exists:
+                    await self.add_task(
+                        task_id, title, url, category, sub_category,
+                        price, published_date,
+                        comments_count, views_count, is_published,
+                        connection
+                    )
 
         return is_new
 
