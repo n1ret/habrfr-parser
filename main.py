@@ -47,6 +47,6 @@ if __name__ == '__main__':
     dp.register_message_handler(start, commands=['start'])
 
     dp.register_callback_query_handler(delete_task, text='delete')
-    dp.register_callback_query_handler(update_task, startswith='update:')
+    # dp.register_callback_query_handler(update_task, startswith='update:')
 
     executor.start_polling(dp, on_startup=main, skip_updates=True, loop=loop)

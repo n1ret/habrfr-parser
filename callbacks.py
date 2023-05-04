@@ -1,5 +1,4 @@
 from aiogram.types import CallbackQuery
-from bs4 import BeautifulSoup
 
 import requests
 
@@ -11,7 +10,6 @@ async def delete_task(callback: CallbackQuery):
 
 
 async def update_task(callback: CallbackQuery):
-    return
     data = callback.data.split(':')
     task_url = data[1]
 
