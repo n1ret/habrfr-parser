@@ -1,6 +1,6 @@
-from aiogram import Bot
+from aiogram import Bot, types
 
-from asyncio import sleep, run
+from asyncio import sleep
 import requests
 from datetime import datetime
 
@@ -40,14 +40,27 @@ async def check_new(bot: Bot, db: DataBase):
                     task_id, title, category, sub_category, price,
                     published_date, comments_count, views_count
                 ) = task
+                text = (
+                    f'Новая задача: <b>{title}</b>\n'
+                    f'Цена: <i>{price}</i>\n'
+                    f'Отзывов/просмотров: {comments_count}/{views_count}\n'
+                    f'{category} {sub_category}'
+                )
+                markup = types.InlineKeyboardMarkup().add(
+                    types.InlineKeyboardButton(
+                        '❌ Удалить',
+                        callback_data='delete'
+                    ),
+                    types.InlineKeyboardButton(
+                        '🔗 Ссылка',
+                        f'https://freelance.habr.com/tasks/{task_id}'
+                    )
+                )
+
                 for user in await db.get_users_ids():
                     await bot.send_message(
-                        user,
-                        f'Новая задача: <b>{title}</b>\n'
-                        f'Цена: <i>{price}</i>\n'
-                        f'Отзывов/просмотров: {comments_count}/{views_count}\n'
-                        f'{category} {sub_category}\n'
-                        f'<a href="https://freelance.habr.com/tasks/{task_id}">Ссылка</a>',
+                        user, text,
+                        reply_markup=markup,
                         disable_web_page_preview=True
                     )
         await sleep(60)

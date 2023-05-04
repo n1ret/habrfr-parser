@@ -6,6 +6,7 @@ import asyncio
 import logging
 
 from messages import start
+from callbacks import delete_task
 from bg_process import check_new
 from sql import DataBase
 from middlewares import DBMiddleware
@@ -44,5 +45,7 @@ if __name__ == '__main__':
     dp.middleware.setup(DBMiddleware(db))
 
     dp.register_message_handler(start, commands=['start'])
+
+    dp.register_callback_query_handler(delete_task, text='delete')
 
     executor.start_polling(dp, on_startup=main, skip_updates=True, loop=loop)
