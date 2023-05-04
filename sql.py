@@ -47,12 +47,14 @@ class DataBase:
                 CREATE TABLE IF NOT EXISTS tasks(
                     id BIGINT PRIMARY KEY,
                     title TEXT NOT NULL,
+                    url TEXT,
                     category TEXT,
                     sub_category TEXT,
                     price TEXT NOT NULL,
                     published_date TIMESTAMP NOT NULL,
                     responses_count INTEGER NOT NULL,
-                    views_count INTEGER NOT NULL
+                    views_count INTEGER NOT NULL,
+                    is_published BOOLEAN
                 )
             """)
 
@@ -65,19 +67,19 @@ class DataBase:
             """)
 
     async def add_task(
-        self, task_id: int, title: str, category: str, sub_category: str,
+        self, task_id: int, title: str, url: str, category: str, sub_category: str,
         price: str, published_date: datetime,
-        comments_count: int, views_count: int,
+        comments_count: int, views_count: int, is_published: bool = True,
         _connection: DatabaseConnection = None
     ):
         async with _connection or self.connect() as con:
             await con.execute(
                 """INSERT INTO tasks(
-                    id, title, category, sub_category, price, published_date,
-                    responses_count, views_count
-                ) VALUES($1, $2, $3, $4, $5, $6, $7, $8)""",
-                task_id, title, category, sub_category, price, published_date,
-                comments_count, views_count
+                    id, title, url, category, sub_category, price, published_date,
+                    responses_count, views_count, is_published
+                ) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)""",
+                task_id, title, url, category, sub_category, price, published_date,
+                comments_count, views_count, is_published
             )
 
     async def get_task(self, task_id: int,
@@ -92,48 +94,36 @@ class DataBase:
                 task = Task(*row)
         return task
 
-    async def create_or_update_tasks(
-        self, tasks: list[tuple[int, str, str, str, str, datetime, int, int]]
+    async def create_or_ignore_tasks(
+        self, tasks: list[tuple[int, str, str, str, str, str, datetime, int, int, bool]]
     ):
         """Create or update task
 
         Returns:
             list[
                 True: Task created
-                False: Task updated
+                False: Task ignored
             ]
         """
 
         is_new = []
         connection = self.connect()
-        async with connection as con:
-            for task in tasks:
-                (
-                    task_id, title, category, sub_category,
-                    price, published_date,
-                    comments_count, views_count
-                ) = task
+        for task in tasks:
+            (
+                task_id, title, url, category, sub_category,
+                price, published_date,
+                comments_count, views_count, is_published
+            ) = task
 
-                is_task_exists = await self.get_task(task_id, connection) is None
-                is_new.append(is_task_exists)
-                if is_task_exists:
-                    await self.add_task(
-                        task_id, title, category, sub_category,
-                        price, published_date,
-                        comments_count, views_count, connection
-                    )
-                else:
-                    await con.execute('''
-                    UPDATE tasks SET
-                        title = $2,
-                        category = $3,
-                        sub_category = $4,
-                        price = $5,
-                        published_date = $6,
-                        responses_count = $7,
-                        views_count = $8
-                    WHERE id = $1
-                    ''', *task)
+            is_task_not_exists = await self.get_task(task_id, connection) is None
+            is_new.append(is_task_not_exists)
+            if is_task_not_exists:
+                await self.add_task(
+                    task_id, title, url, category, sub_category,
+                    price, published_date,
+                    comments_count, views_count, is_published,
+                    connection
+                )
 
         return is_new
 

@@ -30,20 +30,21 @@ async def check_new(bot: Bot, db: DataBase):
             published_date = published_date.replace(tzinfo=None) - published_date.tzinfo.utcoffset(None)
 
             args = (
-                task_id, title, category, sub_category, price,
-                published_date, comments_count, views_count
+                task_id, title, url, category, sub_category, price,
+                published_date, comments_count, views_count, is_publish
             )
 
             tasks_args.append(args)
         
-        are_new_tasks = await db.create_or_update_tasks(tasks_args)
+        are_new_tasks = await db.create_or_ignore_tasks(tasks_args)
 
         for is_new, task in zip(are_new_tasks, tasks_args):
             if is_new:
                 (
-                    task_id, title, category, sub_category, price,
-                    published_date, comments_count, views_count
+                    task_id, title, url, category, sub_category, price,
+                    published_date, comments_count, views_count, is_publish
                 ) = task
+
                 text = (
                     f'Новая задача: <b>{title}</b>\n'
                     f'Цена: <i>{price}</i>\n'
@@ -56,10 +57,15 @@ async def check_new(bot: Bot, db: DataBase):
                         callback_data='delete'
                     ),
                     types.InlineKeyboardButton(
-                        '🔗 Ссылка',
-                        f'https://freelance.habr.com/tasks/{task_id}'
+                        '🔗 Ссылка', url
                     )
                 )
+                '''.add(
+                    types.InlineKeyboardButton(
+                        '🔄 Обновить информацию',
+                        callback_data=f'update:{url}'
+                    )
+                )'''
 
                 for user in await db.get_users_ids():
                     await bot.send_message(

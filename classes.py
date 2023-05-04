@@ -6,12 +6,14 @@ from datetime import datetime
 class Task:
     task_id: int
     title: str
+    url: str
     category: str
     sub_category: str
     price: str
     published_date: datetime
     comments_count: int
     views_count: int
+    is_published: bool
 
 
 @dataclass
