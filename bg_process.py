@@ -12,7 +12,11 @@ async def check_new(bot: Bot, db: DataBase):
         headers = {
             'Accept': 'application/json'
         }
-        r = requests.get("https://freelance.habr.com/tasks?page=1&a=1", headers=headers)
+        try:
+            r = requests.get("https://freelance.habr.com/tasks?page=1&a=1", headers=headers)
+        except requests.ConnectionError:
+            await sleep(60)
+            continue
         tasks: list[dict] = r.json()
 
         tasks_args: list[tuple] = []
