@@ -21,6 +21,10 @@ async def check_new(bot: Bot, db: DataBase):
 
         tasks_args: list[tuple] = []
         for task in tasks:
+            if not task:
+                print(tasks, r.text)
+                break
+
             (
                 task_id, title, is_publish, category, sub_category, price,
                 published_date, is_marked, url, comments_count, views_count
@@ -60,12 +64,6 @@ async def check_new(bot: Bot, db: DataBase):
                         '🔗 Ссылка', url
                     )
                 )
-                '''.add(
-                    types.InlineKeyboardButton(
-                        '🔄 Обновить информацию',
-                        callback_data=f'update:{url}'
-                    )
-                )'''
 
                 for user in await db.get_users_ids():
                     await bot.send_message(
