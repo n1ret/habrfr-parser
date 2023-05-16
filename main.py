@@ -1,4 +1,5 @@
 from aiogram import Bot, Dispatcher, executor
+from aiogram.utils.exceptions import BotBlocked
 from dotenv import load_dotenv
 
 from os import environ
@@ -6,7 +7,8 @@ import asyncio
 import logging
 
 from messages import start
-from callbacks import delete_task
+from callbacks import delete_task, update_task
+from errors import pass_error
 from bg_process import check_new
 from sql import DataBase
 from middlewares import DBMiddleware
@@ -47,5 +49,8 @@ if __name__ == '__main__':
     dp.register_message_handler(start, commands=['start'])
 
     dp.register_callback_query_handler(delete_task, text='delete')
+    # dp.register_callback_query_handler(update_task, startswith='update:')
+
+    dp.register_errors_handler(pass_error, exception=BotBlocked)
 
     executor.start_polling(dp, on_startup=main, skip_updates=True, loop=loop)

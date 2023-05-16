@@ -1,4 +1,5 @@
 from aiogram import Bot, types
+from aiogram.utils.exceptions import CantTalkWithBots, BotBlocked
 
 from asyncio import sleep
 import requests
@@ -21,10 +22,8 @@ async def check_new(bot: Bot, db: DataBase):
 
         tasks_args: list[tuple] = []
         for task in tasks:
-            if not task:
-                print(tasks, r.text)
+            if task is None:
                 break
-
             (
                 task_id, title, is_publish, category, sub_category, price,
                 published_date, is_marked, url, comments_count, views_count
@@ -64,11 +63,20 @@ async def check_new(bot: Bot, db: DataBase):
                         '🔗 Ссылка', url
                     )
                 )
+                '''.add(
+                    types.InlineKeyboardButton(
+                        '🔄 Обновить информацию',
+                        callback_data=f'update:{url}'
+                    )
+                )'''
 
                 for user in await db.get_users_ids():
-                    await bot.send_message(
-                        user, text,
-                        reply_markup=markup,
-                        disable_web_page_preview=True
-                    )
+                    try:
+                        await bot.send_message(
+                            user, text,
+                            reply_markup=markup,
+                            disable_web_page_preview=True
+                        )
+                    except (CantTalkWithBots, BotBlocked):
+                        continue
         await sleep(60)
