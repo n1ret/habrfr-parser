@@ -56,21 +56,20 @@ async def check_new(bot: Bot, db: DataBase):
                 )
                 markup = types.InlineKeyboardMarkup().add(
                     types.InlineKeyboardButton(
+                        '👁 Не показывать категорию',
+                        callback_data='hide_category:{category} {sub_category}'
+                    ),
+                    types.InlineKeyboardButton(
                         '❌ Удалить',
                         callback_data='delete'
-                    ),
+                    )
+                ).add(
                     types.InlineKeyboardButton(
                         '🔗 Ссылка', url
                     )
                 )
-                '''.add(
-                    types.InlineKeyboardButton(
-                        '🔄 Обновить информацию',
-                        callback_data=f'update:{url}'
-                    )
-                )'''
 
-                for user in await db.get_users_ids():
+                for user in await db.get_users_ids(f'{category} {sub_category}'):
                     try:
                         await bot.send_message(
                             user, text,

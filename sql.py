@@ -7,7 +7,7 @@ from datetime import datetime
 from classes import Task, User
 
 
-class DatabaseConnection:
+class DatabaseContext:
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
@@ -33,7 +33,7 @@ class DataBase:
         if password:
             connect_dsn += f'?password={password}'
 
-        self.connect = partial(DatabaseConnection, connect_dsn)
+        self.connect = partial(DatabaseContext, connect_dsn)
 
         if not loop:
             loop = asyncio.get_event_loop()
@@ -62,7 +62,8 @@ class DataBase:
                 CREATE TABLE IF NOT EXISTS users(
                     id BIGINT PRIMARY KEY,
                     username TEXT,
-                    categories TEXT[]
+                    categories_list TEXT[],
+                    is_categories_whitelist BOOLEAN DEFAULT FALSE
                 )
             """)
 
@@ -70,7 +71,7 @@ class DataBase:
         self, task_id: int, title: str, url: str, category: str, sub_category: str,
         price: str, published_date: datetime,
         comments_count: int, views_count: int, is_published: bool = True,
-        _connection: DatabaseConnection = None
+        _connection: DatabaseContext = None
     ):
         async with _connection or self.connect() as con:
             await con.execute(
@@ -83,7 +84,7 @@ class DataBase:
             )
 
     async def get_task(self, task_id: int,
-                       _connection: DatabaseConnection = None):
+                       _connection: DatabaseContext = None):
         async with _connection or self.connect() as con:
             row = await con.fetchrow(
                 "SELECT * FROM tasks WHERE id = $1",
@@ -128,15 +129,17 @@ class DataBase:
 
         return is_new
 
-    async def add_user(self, user_id: int, username: str):
-        async with self.connect() as con:
+    async def add_user(self, user_id: int, username: str,
+                       _connection: DatabaseContext = None):
+        async with _connection or self.connect() as con:
             await con.execute(
                 "INSERT INTO users(id, username) VALUES($1, $2)",
                 user_id, username
             )
 
-    async def get_user(self, user_id: int):
-        async with self.connect() as con:
+    async def get_user(self, user_id: int,
+                       _connection: DatabaseContext = None):
+        async with _connection or self.connect() as con:
             row = await con.fetchrow(
                 "SELECT * FROM users WHERE id = $1",
                 user_id
@@ -147,19 +150,40 @@ class DataBase:
         return user
 
     async def get_or_create_user(self, user_id: int, username: str) -> User:
-        user = await self.get_user(user_id)
-        if not user:
-            await self.add_user(user_id, username)
-            user = await self.get_user(user_id)
-        return user
+        connection = self.connect()
+        async with connection:
+            user = await self.get_user(user_id, connection)
+            if not user:
+                await self.add_user(user_id, username, connection)
+                user = await self.get_user(user_id, connection)
+            return user
     
-    async def get_users_ids(self) -> list[int]:
+    async def get_users_ids(self, category: str) -> list[int]:
         async with self.connect() as con:
             rows = await con.fetch(
-                "SELECT id FROM users",
+                "SELECT id FROM users WHERE all(categories_list) != $1",
+                category
             )
-        
-        ids = []
-        for row in rows:
-            ids.append(row.get('id'))
-        return ids
+
+        return [row.get('id') for row in rows]
+
+    async def add_category_to_list(self, user_id: int, category: str):
+        async with self.connect() as con:
+            await con.execute(
+                "UPDATE users SET categories_list = array_append(categories_list, $2) WHERE id = $1",
+                user_id, category
+            )
+    
+    async def remove_category_from_list(self, user_id: int, category: str):
+        async with self.connect() as con:
+            await con.execute(
+                "UPDATE users SET categories_list = array_remove(categories_list, $2) WHERE id = $1",
+                user_id, category
+            )
+    
+    async def change_category_type(self, user_id: int):
+        async with self.connect() as con:
+            await con.execute(
+                "UPDATE users SET is_categories_whitelist = NOT is_categories_whitelist WHERE id = $1",
+                user_id
+            )

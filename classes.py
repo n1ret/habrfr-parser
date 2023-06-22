@@ -20,4 +20,5 @@ class Task:
 class User:
     user_id: int
     username: str
-    categories: list[str]
+    categories_list: list[str]
+    is_categories_whitelist: bool

@@ -1,10 +1,55 @@
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.exceptions import MessageCantBeDeleted
 
-import requests
+from utils import get_menu
+from sql import DataBase
 
 
-async def delete_task(callback: CallbackQuery):
+async def menu_cb(callback: CallbackQuery):
+    text, markup = get_menu()
+
+    await callback.message.edit_text(text, reply_markup=markup)
+
+
+async def categories(callback: CallbackQuery, db: DataBase):
+    tg_user = callback.from_user.id
+
+    user = await db.get_user(tg_user)
+
+    text = f'{("Чёрный", "Белый")[user.is_categories_whitelist]} список категорий'
+    markup = InlineKeyboardMarkup()
+    '''markup.add(
+        InlineKeyboardButton(
+            'Сменить тип списка',
+            callback_data='change_categories_list_type'
+        )
+    )'''
+    for category in user.categories_list:
+        markup.add(InlineKeyboardButton(category, callback_data=f'remove_category:{category}'))
+
+    await callback.message.edit_text(text, reply_markup=markup)
+
+
+async def change_categories_list_type(callback: CallbackQuery, db: DataBase):
+    tg_user = callback.from_user.id
+    await db.change_category_type(tg_user)
+    await categories(callback, db)
+
+
+async def remove_category(callback: CallbackQuery, db: DataBase):
+    tg_user = callback.from_user.id
+    category = callback.data.split(':')[1]
+
+    user = await db.get_user(tg_user)
+    if category in user.categories_list:
+        await callback.answer('Этой категории нет в чёрном списке')
+        return
+    
+    await db.remove_category_from_list(tg_user, category)
+    await categories(callback, db)
+
+
+async def delete_msg(callback: CallbackQuery):
     try:
         await callback.message.delete()
     except MessageCantBeDeleted:
@@ -13,28 +58,16 @@ async def delete_task(callback: CallbackQuery):
         await callback.answer('Сообщение удалено')
 
 
-async def update_task(callback: CallbackQuery):
-    data = callback.data.split(':')
-    task_url = data[1]
+async def hide_category(callback: CallbackQuery, db: DataBase):
+    tg_user = callback.from_user.id
 
-    try:
-        r = requests.get(url=task_url)
-    except requests.ConnectionError:
-        await callback.answer('Ошибка подключения к серверу freelance.habr.com')
+    category = callback.data.split(':')[1]
+    user = await db.get_user(tg_user)
+
+    if category in user.categories_list:
+        await callback.answer('Эта категория уже в чёрном списке')
         return
-    
-    if r.status_code != requests.codes.ok:
-        await callback.answer(f'{r.status_code} сервер не дал ответ')
-        return
-    
-    soup = BeautifulSoup(r.text, 'lxml')
 
-    title = soup.find('meta', property='og:title')
-
-    is_publish, category, sub_category, price,
-    published_date, is_marked, url, comments_count, views_count
-    text = ''
-
-    await callback.message.edit_text(text)
-
-    await callback.answer('Данные обновлены')
+    await db.add_category_to_list(tg_user, category)
+    await callback.message.delete()
+    await callback.answer('Категория скрыта')
