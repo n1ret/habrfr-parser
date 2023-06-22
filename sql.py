@@ -161,7 +161,7 @@ class DataBase:
     async def get_users_ids(self, category: str) -> list[int]:
         async with self.connect() as con:
             rows = await con.fetch(
-                "SELECT id FROM users WHERE all(categories_list) != $1",
+                "SELECT id FROM users WHERE $1 != all(categories_list)",
                 category
             )
 
