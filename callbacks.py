@@ -26,6 +26,9 @@ async def categories(callback: CallbackQuery, db: DataBase):
     )'''
     for category in user.categories_list:
         markup.add(InlineKeyboardButton(category, callback_data=f'remove_category:{category}'))
+    markup.add(
+        InlineKeyboardButton('Menu', callback_data='menu')
+    )
 
     await callback.message.edit_text(text, reply_markup=markup)
 
