@@ -50,7 +50,7 @@ async def change_categories_list_type(callback: CallbackQuery, db: DataBase):
 
 async def remove_category(callback: CallbackQuery, db: DataBase):
     tg_user = callback.from_user.id
-    category, sub_category = callback.data.split(':')[1].split()
+    category, sub_category = map(int, callback.data.split(':')[1].split())
     full_category = CATEGORIES[category] + ' ' + SUB_CATEGORIES[sub_category]
 
     user = await db.get_user(tg_user)
@@ -74,7 +74,7 @@ async def delete_msg(callback: CallbackQuery):
 async def hide_category(callback: CallbackQuery, db: DataBase):
     tg_user = callback.from_user.id
 
-    category, sub_category = callback.data.split(':')[1].split()
+    category, sub_category = map(int, callback.data.split(':')[1].split())
     full_category = CATEGORIES[category] + ' ' + SUB_CATEGORIES[sub_category]
     user = await db.get_user(tg_user)
 
