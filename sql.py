@@ -62,7 +62,7 @@ class DataBase:
                 CREATE TABLE IF NOT EXISTS users(
                     id BIGINT PRIMARY KEY,
                     username TEXT,
-                    categories_list TEXT[],
+                    categories_list TEXT[] DEFAULT '{}',
                     is_categories_whitelist BOOLEAN DEFAULT FALSE
                 )
             """)

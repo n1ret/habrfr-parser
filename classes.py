@@ -22,3 +22,7 @@ class User:
     username: str
     categories_list: list[str]
     is_categories_whitelist: bool
+
+    def __post_init__(self):
+        if self.categories_list is None:
+            self.categories_list = []
