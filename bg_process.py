@@ -57,7 +57,7 @@ async def check_new(bot: Bot, db: DataBase):
                 markup = types.InlineKeyboardMarkup().add(
                     types.InlineKeyboardButton(
                         '👁 Не показывать категорию',
-                        callback_data='hide_category:{category} {sub_category}'
+                        callback_data=f'hide_category:{category} {sub_category}'
                     ),
                     types.InlineKeyboardButton(
                         '❌ Удалить',

@@ -7,7 +7,7 @@ import asyncio
 import logging
 
 from messages import menu, start
-from callbacks import menu_cb, delete_msg, hide_category, categories
+from callbacks import menu_cb, delete_msg, hide_category, categories, remove_category
 from errors import pass_error
 from bg_process import check_new
 from sql import DataBase
@@ -53,6 +53,7 @@ if __name__ == '__main__':
     dp.register_callback_query_handler(delete_msg, text='delete')
     dp.register_callback_query_handler(hide_category, text_startswith='hide_category:')
     dp.register_callback_query_handler(categories, text='categories')
+    dp.register_callback_query_handler(remove_category, text_startswith='remove_category:')
 
     dp.register_errors_handler(pass_error, exception=BotBlocked)
 
