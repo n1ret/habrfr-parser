@@ -54,7 +54,7 @@ async def remove_category(callback: CallbackQuery, db: DataBase):
     full_category = CATEGORIES[category] + ' ' + SUB_CATEGORIES[sub_category]
 
     user = await db.get_user(tg_user)
-    if full_category in user.categories_list:
+    if full_category not in user.categories_list:
         await callback.answer('Этой категории нет в чёрном списке')
         return
     
