@@ -28,7 +28,7 @@ async def categories(callback: CallbackQuery, db: DataBase):
         )
     )'''
     for full_category in user.categories_list:
-        category, sub_category = full_category.split()
+        category, sub_category = full_category.split(maxsplit=1)
         markup.add(
             InlineKeyboardButton(
                 full_category,
