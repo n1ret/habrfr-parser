@@ -1,4 +1,5 @@
 from aiogram import Bot, types
+from aiogram.utils.markdown import quote_html as htmlq
 from aiogram.utils.exceptions import CantTalkWithBots, BotBlocked
 
 from asyncio import sleep
@@ -51,7 +52,7 @@ async def check_new(bot: Bot, db: DataBase):
             ) = task
 
             text = (
-                f'Новая задача: <b>{title}</b>\n'
+                f'Новая задача: <b>{htmlq(title)}</b>\n'
                 f'Цена: <i>{price}</i>\n'
                 f'Отзывов/просмотров: {comments_count}/{views_count}\n'
                 f'{category} {sub_category}'
