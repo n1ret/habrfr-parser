@@ -1,13 +1,12 @@
 from aiogram import Bot, types
 from aiogram.utils.markdown import quote_html as htmlq
-from aiogram.utils.exceptions import CantTalkWithBots, BotBlocked
+from aiogram.utils.exceptions import CantTalkWithBots, BotBlocked, ChatNotFound
 
 from asyncio import sleep
 import requests
 from datetime import datetime
 
 from sql import DataBase
-from utils import CATEGORIES_ENCODE, SUB_CATEGORIES_ENCODE
 
 
 async def check_new(bot: Bot, db: DataBase):
@@ -57,10 +56,11 @@ async def check_new(bot: Bot, db: DataBase):
                 f'Отзывов/просмотров: {comments_count}/{views_count}\n'
                 f'{category} {sub_category}'
             )
-            markup = types.InlineKeyboardMarkup().add(
+            markup = types.InlineKeyboardMarkup()
+            markup.add(
                 types.InlineKeyboardButton(
                     '👁 Не показывать категорию',
-                    callback_data=f'hide_category:{CATEGORIES_ENCODE[category]} {SUB_CATEGORIES_ENCODE[sub_category]}'
+                    callback_data=f'hide_category:{await db.get_category_id(category, sub_category)}'
                 ),
                 types.InlineKeyboardButton(
                     '❌ Удалить',
@@ -72,13 +72,15 @@ async def check_new(bot: Bot, db: DataBase):
                 )
             )
 
-            for user in await db.get_users_ids(f'{category} {sub_category}'):
+            for user in await db.get_users_ids(category, sub_category):
+                if user < 0:
+                    continue
                 try:
                     await bot.send_message(
                         user, text,
                         reply_markup=markup,
                         disable_web_page_preview=True
                     )
-                except (CantTalkWithBots, BotBlocked):
+                except (CantTalkWithBots, BotBlocked, ChatNotFound):
                     continue
         await sleep(60)
