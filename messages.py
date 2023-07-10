@@ -1,5 +1,6 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
+from aiogram.utils.exceptions import BotBlocked, CantTalkWithBots, ChatNotFound
 
 from sql import DataBase
 
@@ -31,7 +32,13 @@ async def distribution_message(message: types.Message, db: DataBase, state: FSMC
     tg_user = message.from_user.id
 
     for user_id in await db.get_all_users_ids(tg_user):
-        await message.send_copy(user_id)
+        try:
+            await message.send_copy(user_id)
+        except (BotBlocked, CantTalkWithBots, ChatNotFound):
+            pass
+        except Exception as e:
+            print(user_id)
+            print(e)
 
     text = 'Сообщения отправлены'
     markup = types.InlineKeyboardMarkup().add(

@@ -1,5 +1,4 @@
 from aiogram import Bot, Dispatcher, executor
-from aiogram.utils.exceptions import BotBlocked
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from dotenv import load_dotenv
 
@@ -13,7 +12,6 @@ from callbacks import (
     hide_category, categories_menu, sub_categories_menu, toggle_sub_category,
     distribution
 )
-from errors import pass_error
 from bg_process import check_new
 from sql import DataBase
 from middlewares import DBMiddleware
@@ -66,7 +64,5 @@ if __name__ == '__main__':
     dp.register_callback_query_handler(toggle_category, text_startswith='toggle_category:')
     dp.register_callback_query_handler(toggle_sub_category, text_startswith='toggle_sub_category:')
     dp.register_callback_query_handler(distribution, text='distribution')
-
-    dp.register_errors_handler(pass_error, exception=BotBlocked)
 
     executor.start_polling(dp, on_startup=main, skip_updates=True, loop=loop)

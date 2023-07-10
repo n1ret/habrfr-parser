@@ -131,7 +131,7 @@ async def hide_category(callback: CallbackQuery, db: DataBase):
     await callback.answer('Категория скрыта')
 
 
-async def distribution(callback: CallbackQuery, db: DataBase):
+async def distribution(callback: CallbackQuery):
     await Distribution.message.set()
 
     text = 'Введите сообщение рассылки'
