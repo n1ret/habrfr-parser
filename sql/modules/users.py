@@ -42,17 +42,36 @@ class DBUsers(DBBase):
             )
 
         return rows
+    
+    async def get_all_users_ids(self, user_id: int) -> list[int]:
+        """return ids of all users without user_id
+
+        Args:
+            user_id (int): id of the user who is excluded
+
+        Returns:
+            list[int]: user ids
+        """
+
+        async with self.connect() as con:
+            rows = await con.fetch(
+                "SELECT id FROM users WHERE id != $1",
+                user_id
+            )
+
+        return [row.get('id') for row in rows]
 
     async def get_users_ids(self, category: str, sub_category: str) -> list[int]:
         async with self.connect() as con:
             rows = await con.fetch(
-                """SELECT id FROM users WHERE (
-                        id != all(
+                """SELECT u.id FROM users u WHERE xor(
+                        u.id NOT IN (
                         SELECT distinct(uc.user_id) FROM users_categories uc
                         INNER JOIN categories c ON uc.category_id = c.id
                         WHERE c.category_name = $1 AND c.sub_category_name = $2
-                    )::integer + is_categories_whitelist::integer = 1
-                )""",
+                    ), u.is_categories_whitelist) OR NOT EXISTS(
+                        SELECT 1 FROM users_categories uc WHERE uc.user_id = u.id
+                    ) AND u.is_categories_whitelist""",
                 category, sub_category
             )
 

@@ -1,20 +1,23 @@
 from aiogram import Bot, Dispatcher, executor
 from aiogram.utils.exceptions import BotBlocked
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from dotenv import load_dotenv
 
 from os import environ
 import asyncio
 import logging
 
-from messages import menu, start
+from messages import menu, start, distribution_message
 from callbacks import (
     menu_cb, delete_msg, change_categories_list_type, toggle_category,
-    hide_category, categories_menu, sub_categories_menu, toggle_sub_category
+    hide_category, categories_menu, sub_categories_menu, toggle_sub_category,
+    distribution
 )
 from errors import pass_error
 from bg_process import check_new
 from sql import DataBase
 from middlewares import DBMiddleware
+from states import Distribution
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO, format='%(levelname)-8s[%(asctime)s] %(message)s')
@@ -33,7 +36,8 @@ if not all(BOT_TOKEN):
     exit(-1)
 
 bot = Bot(token=BOT_TOKEN, parse_mode='HTML')
-dp = Dispatcher(bot)
+storage = MemoryStorage()
+dp = Dispatcher(bot, storage=storage)
 
 db = DataBase(
     environ.get('PSQL_HOST'), environ.get('PSQL_DBNAME'),
@@ -49,17 +53,19 @@ async def main(_):
 if __name__ == '__main__':
     dp.middleware.setup(DBMiddleware(db))
 
-    dp.register_message_handler(menu, commands=['menu'])
-    dp.register_message_handler(start, commands=['start'])
+    dp.register_message_handler(menu, commands=['menu'], state='*')
+    dp.register_message_handler(start, commands=['start'], state='*')
+    dp.register_message_handler(distribution_message, state=Distribution.message)
 
-    dp.register_callback_query_handler(menu_cb, text='menu')
-    dp.register_callback_query_handler(delete_msg, text='delete')
-    dp.register_callback_query_handler(hide_category, text_startswith='hide_category:')
+    dp.register_callback_query_handler(menu_cb, text='menu', state='*')
+    dp.register_callback_query_handler(delete_msg, text='delete', state='*')
+    dp.register_callback_query_handler(hide_category, text_startswith='hide_category:', state='*')
     dp.register_callback_query_handler(categories_menu, text='categories')
     dp.register_callback_query_handler(change_categories_list_type, text='change_categories_list_type')
     dp.register_callback_query_handler(sub_categories_menu, text_startswith='sub_categories:')
     dp.register_callback_query_handler(toggle_category, text_startswith='toggle_category:')
     dp.register_callback_query_handler(toggle_sub_category, text_startswith='toggle_sub_category:')
+    dp.register_callback_query_handler(distribution, text='distribution')
 
     dp.register_errors_handler(pass_error, exception=BotBlocked)
 

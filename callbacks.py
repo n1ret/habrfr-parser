@@ -1,14 +1,18 @@
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.exceptions import MessageCantBeDeleted
+from aiogram.dispatcher import FSMContext
 
 from utils import (
     get_menu
 )
 from sql import DataBase
+from states import Distribution
 
 
-async def menu_cb(callback: CallbackQuery):
-    text, markup = get_menu()
+async def menu_cb(callback: CallbackQuery, db: DataBase, state: FSMContext):
+    await state.finish()
+
+    text, markup = await get_menu(db, callback.from_user)
 
     await callback.message.edit_text(text, reply_markup=markup)
 
@@ -125,3 +129,13 @@ async def hide_category(callback: CallbackQuery, db: DataBase):
         pass
 
     await callback.answer('Категория скрыта')
+
+
+async def distribution(callback: CallbackQuery, db: DataBase):
+    await Distribution.message.set()
+
+    text = 'Введите сообщение рассылки'
+    markup = InlineKeyboardMarkup().add(
+        InlineKeyboardButton('Back', callback_data='menu')
+    )
+    await callback.message.edit_text(text, reply_markup=markup)

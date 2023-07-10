@@ -45,6 +45,8 @@ class User:
     user_id: int
     username: str
     is_categories_whitelist: bool
+    is_admin: bool
+    is_subscribed: bool
 
     categories_list: list[Category] = None
 

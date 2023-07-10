@@ -36,7 +36,7 @@ class DBBase:
             loop = asyncio.get_event_loop()
         self.loop = loop
 
-        self.loop.run_until_complete(self.__init_db())
+        self.loop.run_until_complete(self.init_db())
 
-    async def __init_db(self):
+    async def init_db(self):
         pass

@@ -1,13 +1,42 @@
+from requests import get
+from bs4 import BeautifulSoup
+
 from .base import DBBase
 from ..classes import Category
 
 
 class DBCategories(DBBase):
+    async def init_db(self):
+        async with self.connect() as con:
+            if not await con.fetchval(
+                "SELECT EXISTS(SELECT 1 FROM categories LIMIT 1)"
+            ):
+                r = get('https://freelance.habr.com/tasks')
+                soup = BeautifulSoup(r.text, 'lxml')
+
+                categories_list = []
+                for i, category in enumerate(soup.find_all('li', {'class': 'category-group__folder'})):
+                    category_name = category.find(
+                        'span', {'class': 'link_dotted js-toggle'}
+                    ).text.strip()
+
+                    for u, sub_category in enumerate(category.find_all('span', {'class': 'checkbox__label'})):
+                        sub_category_name = sub_category.text.strip()
+                        categories_list.append(
+                            (len(categories_list), category_name, sub_category_name, i, u)
+                        )
+
+                await self.update_categories(categories_list)
+
+        return await super().init_db()
+
     async def write_categories(self, categories: list[tuple[int, str, str, int, int]]):
         async with self.connect() as con:
-            await con.execute("DELETE FROM categories")
             await con.executemany(
-                "INSERT INTO categories (id, category_name, sub_category_name, category_id, sub_category_id) VALUES ($1, $2, $3, $4, $5)",
+                """
+                INSERT INTO categories (id, category_name, sub_category_name, category_id, sub_category_id)
+                VALUES ($1, $2, $3, $4, $5)
+                """,
                 categories
             )
     
