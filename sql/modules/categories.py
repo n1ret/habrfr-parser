@@ -26,7 +26,7 @@ class DBCategories(DBBase):
                             (len(categories_list), category_name, sub_category_name, i, u)
                         )
 
-                await self.update_categories(categories_list)
+                await self.write_categories(categories_list)
 
         return await super().init_db()
 
