@@ -49,5 +49,6 @@ class User:
     categories_list: list[Category] = None
 
     async def parse_categories(self, db):
+        self.categories_list = []
         for row in await db.get_users_categories(self.user_id):
             self.categories_list.append(Category(row))
