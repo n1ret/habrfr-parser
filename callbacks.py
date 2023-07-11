@@ -139,3 +139,9 @@ async def distribution(callback: CallbackQuery):
         InlineKeyboardButton('Back', callback_data='menu')
     )
     await callback.message.edit_text(text, reply_markup=markup)
+
+
+async def toggle_subscription(callback: CallbackQuery, db: DataBase):
+    tg_user = callback.from_user.id
+
+    await db.toggle_subscription(tg_user)

@@ -83,3 +83,10 @@ class DBUsers(DBBase):
                 "UPDATE users SET is_categories_whitelist = NOT is_categories_whitelist WHERE id = $1",
                 user_id
             )
+    
+    async def toggle_subscription(self, user_id: int):
+        async with self.connect() as con:
+            await con.execute(
+                "UPDATE users SET is_subscribed = NOT is_subscribed WHERE id = $1",
+                user_id
+            )
