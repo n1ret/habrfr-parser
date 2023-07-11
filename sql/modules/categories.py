@@ -75,7 +75,7 @@ class DBCategories(DBBase):
     async def get_categories(self, user_id: int) -> list[tuple[str, bool, bool]]:
         async with self.connect() as con:
             categories = await con.fetch(
-                """SELECT DISTINCT(cf.category_name), (
+                """SELECT cf.category_name, (
                     (SELECT count(*) FROM categories WHERE category_name = cf.category_name) =
                     (
                         SELECT count(*) FROM categories c
@@ -88,7 +88,7 @@ class DBCategories(DBBase):
                     WHERE c.category_name = cf.category_name AND uc.user_id = $1
                     LIMIT 1
                 )
-                FROM categories cf""",
+                FROM (SELECT DISTINCT(category_id), category_name FROM categories ORDER BY category_id) cf""",
                 user_id
             )
 
@@ -97,9 +97,11 @@ class DBCategories(DBBase):
     async def get_sub_categories(self, user_id: int, category: str) -> list[tuple[int, bool]]:
         async with self.connect() as con:
             sub_categories = await con.fetch(
-                """SELECT c.sub_category_name, uc.user_id = $1 FROM categories c
+                """SELECT c.sub_category_name,
+                CASE uc.user_id WHEN $1 THEN true ELSE false END is_selected
+                FROM categories c
                 LEFT JOIN users_categories uc ON c.id = uc.category_id
-                WHERE c.category_name = $2""",
+                WHERE c.category_name = $2 ORDER BY c.sub_category_id""",
                 user_id, category
             )
 
