@@ -141,7 +141,9 @@ async def distribution(callback: CallbackQuery):
     await callback.message.edit_text(text, reply_markup=markup)
 
 
-async def toggle_subscription(callback: CallbackQuery, db: DataBase):
+async def toggle_subscription(callback: CallbackQuery, db: DataBase, state: FSMContext):
     tg_user = callback.from_user.id
 
     await db.toggle_subscription(tg_user)
+
+    await menu_cb(callback, db, state)
