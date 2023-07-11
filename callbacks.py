@@ -30,8 +30,8 @@ async def categories_menu(callback: CallbackQuery, db: DataBase):
         )
     )
 
-    for category_name, is_full in await db.get_categories(tg_user):
-        btn_text = category_name + ('🟢' if is_full else '⚫️')
+    for category_name, is_full, is_not_empty in await db.get_categories(tg_user):
+        btn_text = category_name + ('🟢' if is_full else '🟡' if is_not_empty else '⚫️')
         markup.add(
             InlineKeyboardButton(
                 btn_text,

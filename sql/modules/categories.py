@@ -72,7 +72,7 @@ class DBCategories(DBBase):
 
         return is_full
 
-    async def get_categories(self, user_id: int) -> list[tuple[str, bool]]:
+    async def get_categories(self, user_id: int) -> list[tuple[str, bool, bool]]:
         async with self.connect() as con:
             categories = await con.fetch(
                 """SELECT DISTINCT(cf.category_name), (
@@ -82,7 +82,13 @@ class DBCategories(DBBase):
                         INNER JOIN users_categories uc ON c.id = uc.category_id
                         WHERE c.category_name = cf.category_name AND uc.user_id = $1
                     )
-                ) FROM categories cf""",
+                ), EXISTS(
+                    SELECT 1 FROM categories c
+                    INNER JOIN users_categories uc ON c.id = uc.category_id
+                    WHERE c.category_name = cf.category_name AND uc.user_id = $1
+                    LIMIT 1
+                )
+                FROM categories cf""",
                 user_id
             )
 
