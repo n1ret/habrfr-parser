@@ -10,7 +10,7 @@ from messages import menu, start, distribution_message
 from callbacks import (
     menu_cb, delete_msg, change_categories_list_type, toggle_category,
     hide_category, categories_menu, sub_categories_menu, toggle_sub_category,
-    distribution
+    distribution, toggle_subscription
 )
 from bg_process import check_new
 from sql import DataBase
@@ -64,5 +64,6 @@ if __name__ == '__main__':
     dp.register_callback_query_handler(toggle_category, text_startswith='toggle_category:')
     dp.register_callback_query_handler(toggle_sub_category, text_startswith='toggle_sub_category:')
     dp.register_callback_query_handler(distribution, text='distribution')
+    dp.register_callback_query_handler(toggle_subscription, text='toggle_subscription')
 
     executor.start_polling(dp, on_startup=main, skip_updates=True, loop=loop)

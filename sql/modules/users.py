@@ -64,14 +64,19 @@ class DBUsers(DBBase):
     async def get_users_ids(self, category: str, sub_category: str) -> list[int]:
         async with self.connect() as con:
             rows = await con.fetch(
-                """SELECT u.id FROM users u WHERE xor(
+                """SELECT u.id FROM users u WHERE u.is_subscribed AND (
+                    xor(
                         u.id NOT IN (
-                        SELECT distinct(uc.user_id) FROM users_categories uc
-                        INNER JOIN categories c ON uc.category_id = c.id
-                        WHERE c.category_name = $1 AND c.sub_category_name = $2
-                    ), u.is_categories_whitelist) OR NOT EXISTS(
+                            SELECT distinct(uc.user_id) FROM users_categories uc
+                            INNER JOIN categories c ON uc.category_id = c.id
+                            WHERE c.category_name = $1 AND c.sub_category_name = $2
+                        ),
+                        u.is_categories_whitelist
+                    ) OR
+                    NOT EXISTS(
                         SELECT 1 FROM users_categories uc WHERE uc.user_id = u.id
-                    ) AND u.is_categories_whitelist""",
+                    ) AND u.is_categories_whitelist
+                )""",
                 category, sub_category
             )
 
