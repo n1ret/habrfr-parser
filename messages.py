@@ -13,7 +13,9 @@ async def start(message: types.Message, db: DataBase):
     if tg_user.is_bot:
         return
 
-    await db.get_or_create_user(tg_user.id, tg_user.username)
+    user = await db.get_or_create_user(tg_user.id, tg_user.username)
+    if not user.is_subscribed:
+        await db.toggle_subscription(tg_user.id)
 
     await message.answer('Вы добавлены в рассылку\n/menu для управления рассылкой')
 
