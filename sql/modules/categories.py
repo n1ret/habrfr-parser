@@ -100,7 +100,7 @@ class DBCategories(DBBase):
                 """SELECT c.sub_category_name,
                 CASE uc.user_id WHEN $1 THEN true ELSE false END is_selected
                 FROM categories c
-                LEFT JOIN users_categories uc ON c.id = uc.category_id
+                LEFT JOIN users_categories uc ON c.id = uc.category_id AND uc.user_id = $1
                 WHERE c.category_name = $2 ORDER BY c.sub_category_id""",
                 user_id, category
             )
@@ -114,16 +114,16 @@ class DBCategories(DBBase):
                 IF (SELECT count(*) FROM categories WHERE category_name = '{category}') =
                 (
                     SELECT count(*) FROM categories c
-                    INNER JOIN users_categories uc ON c.id = uc.category_id
-                    WHERE c.category_name = '{category}' AND uc.user_id = '{user_id}'
+                    INNER JOIN users_categories uc ON c.id = uc.category_id AND uc.user_id = '{user_id}'
+                    WHERE c.category_name = '{category}'
                 ) THEN
                     DELETE FROM users_categories uc USING categories c
                     WHERE uc.user_id = '{user_id}' AND uc.category_id = c.id AND c.category_name = '{category}';
                 ELSE
                     INSERT INTO users_categories(user_id, category_id)
                     SELECT '{user_id}', c.id
-                    FROM categories c LEFT JOIN users_categories uc ON c.id = uc.category_id
-                    WHERE c.category_name = '{category}' AND (uc.user_id != '{user_id}' OR uc.user_id IS NULL);
+                    FROM categories c LEFT JOIN users_categories uc ON c.id = uc.category_id AND uc.user_id = '{user_id}'
+                    WHERE c.category_name = '{category}' AND uc.user_id IS NULL;
                 END IF;
                 END $$"""
             )
