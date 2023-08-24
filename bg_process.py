@@ -1,6 +1,8 @@
 from aiogram import Bot, types
 from aiogram.utils.markdown import quote_html as htmlq
-from aiogram.utils.exceptions import CantTalkWithBots, BotBlocked, ChatNotFound
+from aiogram.utils.exceptions import (
+    CantTalkWithBots, BotBlocked, ChatNotFound, UserDeactivated
+)
 
 from asyncio import sleep
 import requests
@@ -81,6 +83,6 @@ async def check_new(bot: Bot, db: DataBase):
                         reply_markup=markup,
                         disable_web_page_preview=True
                     )
-                except (CantTalkWithBots, BotBlocked, ChatNotFound):
+                except (CantTalkWithBots, BotBlocked, ChatNotFound, UserDeactivated):
                     continue
         await sleep(60)
