@@ -1,12 +1,15 @@
-from aiogram import Bot, types
-from aiogram.utils.markdown import quote_html as htmlq
-from aiogram.utils.exceptions import (
-    CantTalkWithBots, BotBlocked, ChatNotFound, UserDeactivated
-)
-
 from asyncio import sleep
-import requests
 from datetime import datetime
+
+import requests
+from aiogram import Bot, types
+from aiogram.utils.exceptions import (
+    BotBlocked,
+    CantTalkWithBots,
+    ChatNotFound,
+    UserDeactivated,
+)
+from aiogram.utils.markdown import quote_html as htmlq
 
 from sql import DataBase
 
@@ -17,7 +20,10 @@ async def check_new(bot: Bot, db: DataBase):
             'Accept': 'application/json'
         }
         try:
-            r = requests.get("https://freelance.habr.com/tasks?page=1&a=1", headers=headers)
+            r = requests.get(
+                "https://freelance.habr.com/tasks?page=1&a=1",
+                headers=headers
+            )
         except requests.ConnectionError:
             await sleep(60)
             continue
@@ -33,7 +39,8 @@ async def check_new(bot: Bot, db: DataBase):
             ) = task.values()
 
             published_date = datetime.fromisoformat(published_date)
-            published_date = published_date.replace(tzinfo=None) - published_date.tzinfo.utcoffset(None)
+            published_date = published_date.replace(
+                tzinfo=None) - published_date.tzinfo.utcoffset(None)
 
             args = (
                 task_id, title, url, category, sub_category, price,
@@ -62,7 +69,10 @@ async def check_new(bot: Bot, db: DataBase):
             markup.add(
                 types.InlineKeyboardButton(
                     '👁 Не показывать категорию',
-                    callback_data=f'hide_category:{await db.get_category_id(category, sub_category)}'
+                    callback_data=(
+                        'hide_category:'
+                        f'{await db.get_category_id(category, sub_category)}'
+                    )
                 ),
                 types.InlineKeyboardButton(
                     '❌ Удалить',
