@@ -7,6 +7,7 @@ from aiogram.utils.exceptions import (
     BotBlocked,
     CantTalkWithBots,
     ChatNotFound,
+    Unauthorized,
     UserDeactivated,
 )
 from aiogram.utils.markdown import quote_html as htmlq
@@ -93,6 +94,9 @@ async def check_new(bot: Bot, db: DataBase):
                         reply_markup=markup,
                         disable_web_page_preview=True
                     )
-                except (CantTalkWithBots, BotBlocked, ChatNotFound, UserDeactivated):
+                except (
+                    CantTalkWithBots, BotBlocked, ChatNotFound,
+                    UserDeactivated, Unauthorized
+                ):
                     continue
         await sleep(60)
