@@ -28,7 +28,11 @@ async def check_new(bot: Bot, db: DataBase):
         except requests.ConnectionError:
             await sleep(60)
             continue
-        tasks: list[dict] = r.json()
+        try:
+            tasks: list[dict] = r.json()
+        except requests.exceptions.JSONDecodeError:
+            await sleep(10)
+            continue
 
         tasks_args: list[tuple] = []
         for task in tasks:
