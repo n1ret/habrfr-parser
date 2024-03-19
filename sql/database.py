@@ -1,4 +1,4 @@
-from .modules import DBBase, DBTasks, DBUsers, DBCategories
+from .modules import DBBase, DBCategories, DBTasks, DBUsers
 
 
 class DataBase(DBTasks, DBUsers, DBCategories, DBBase):
