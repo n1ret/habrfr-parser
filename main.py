@@ -29,7 +29,7 @@ from sql import DataBase
 from states import Distribution
 
 load_dotenv()
-logging.basicConfig(level=logging.INFO, format='%(levelname)-8s[%(asctime)s] %(message)s')
+logging.basicConfig(level=logging.WARNING, format='%(levelname)-8s[%(asctime)s] %(message)s')
 
 if __name__ == '__main__':
     loop = asyncio.new_event_loop()
