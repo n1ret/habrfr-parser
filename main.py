@@ -101,4 +101,4 @@ if __name__ == '__main__':
     dp.register_callback_query_handler(distribution, text='distribution')
     dp.register_callback_query_handler(toggle_subscription, text='toggle_subscription')
 
-    uvicorn.run(app, host="127.0.0.1", port=9999)
+    uvicorn.run(app, host="127.0.0.1", port=9999, log_level=logging.WARNING)
