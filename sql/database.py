@@ -29,7 +29,8 @@ class DataBase(DBTasks, DBUsers, DBCategories, DBBase):
                     username TEXT,
                     is_categories_whitelist BOOLEAN DEFAULT TRUE,
                     is_admin BOOLEAN DEFAULT FALSE,
-                    is_subscribed BOOLEAN DEFAULT TRUE
+                    is_subscribed BOOLEAN DEFAULT TRUE,
+                    is_available BOOLEAN DEFAULT TRUE
                 );
                 CREATE TABLE IF NOT EXISTS users_categories(
                     id SERIAL PRIMARY KEY,

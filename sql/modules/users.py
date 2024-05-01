@@ -1,5 +1,5 @@
-from .base import DatabaseContext, DBBase
 from ..classes import User
+from .base import DatabaseContext, DBBase
 
 
 class DBUsers(DBBase):
@@ -9,6 +9,22 @@ class DBUsers(DBBase):
             await con.execute(
                 "INSERT INTO users(id, username) VALUES($1, $2)",
                 user_id, username
+            )
+    
+    async def get_unavailable(self) -> list[int]:
+        async with self.connect() as con:
+            rows = await con.fetch(
+                "SELECT id FROM users WHERE is_available = 'false'"
+            )
+
+        return [row.get('id') for row in rows]
+
+    async def set_available(self, user_id: int, value: bool,
+                            _connection: DatabaseContext = None):
+        async with _connection or self.connect() as con:
+            await con.execute(
+                "UPDATE users SET is_available = $2 WHERE id = $1",
+                user_id, value
             )
 
     async def get_user(self, user_id: int,

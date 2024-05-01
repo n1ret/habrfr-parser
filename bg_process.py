@@ -89,6 +89,7 @@ async def check_new(bot: Bot, db: DataBase):
                 )
             )
 
+            unavailable = set(await db.get_unavailable())
             for user in await db.get_users_ids(category, sub_category):
                 if user < 0:
                     continue
@@ -102,5 +103,9 @@ async def check_new(bot: Bot, db: DataBase):
                     CantTalkWithBots, BotBlocked, ChatNotFound,
                     UserDeactivated, Unauthorized
                 ):
-                    continue
+                    if user not in unavailable:
+                        await db.set_available(user, False)
+                else:
+                    if user in unavailable:
+                        await db.set_available(user, True)
         await sleep(60)
