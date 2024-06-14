@@ -7,6 +7,7 @@ from aiogram.utils.exceptions import (
     BotBlocked,
     CantTalkWithBots,
     ChatNotFound,
+    TelegramAPIError,
     Unauthorized,
     UserDeactivated,
 )
@@ -93,19 +94,23 @@ async def check_new(bot: Bot, db: DataBase):
             for user in await db.get_users_ids(category, sub_category):
                 if user < 0:
                     continue
-                try:
-                    await bot.send_message(
-                        user, text,
-                        reply_markup=markup,
-                        disable_web_page_preview=True
-                    )
-                except (
-                    CantTalkWithBots, BotBlocked, ChatNotFound,
-                    UserDeactivated, Unauthorized
-                ):
-                    if user not in unavailable:
-                        await db.set_available(user, False)
-                else:
-                    if user in unavailable:
-                        await db.set_available(user, True)
+                while True:
+                    try:
+                        await bot.send_message(
+                            user, text,
+                            reply_markup=markup,
+                            disable_web_page_preview=True
+                        )
+                    except (
+                        CantTalkWithBots, BotBlocked, ChatNotFound,
+                        UserDeactivated, Unauthorized
+                    ):
+                        if user not in unavailable:
+                            await db.set_available(user, False)
+                    except TelegramAPIError:
+                        continue
+                    else:
+                        if user in unavailable:
+                            await db.set_available(user, True)
+                        break
         await sleep(60)
